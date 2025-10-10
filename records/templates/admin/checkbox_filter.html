@@ -1,0 +1,19 @@
+{% load i18n %}
+<div class="filter">
+  <h3>{% blocktrans with title=title %}By {{ title }}{% endblocktrans %}</h3>
+  <ul>
+    {% for choice in choices %}
+      <li>
+        <input type="checkbox"
+               id="{{ spec.parameter_name }}_{{ forloop.counter }}"
+               name="{{ spec.parameter_name }}"
+               value="{{ choice.value }}"
+               onclick="window.location.href='{{ choice.query_string }}'"
+               {% if choice.selected %}checked{% endif %}>
+        <label for="{{ spec.parameter_name }}_{{ forloop.counter }}">
+          {{ choice.title }}
+        </label>
+      </li>
+    {% endfor %}
+  </ul>
+</div>
