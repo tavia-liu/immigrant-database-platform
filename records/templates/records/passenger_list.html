@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Passenger List</title>
+</head>
+<body>
+    <h1>Passenger List</h1>
+    <table border="1" cellpadding="6">
+        <tr>
+            <th>NAID</th>
+            <th>Name</th>
+            <th>Ship</th>
+            <th>Arrival Port</th>
+            <th>Arrival Date</th>
+            <th>Action</th>
+        </tr>
+        {% for p in passengers %}
+        <tr>
+            <td>{{ p.naid }}</td>
+            <td>{{ p.name_individual }} {{ p.name_family }}</td>
+            <td>{{ p.ship_name }}</td>
+            <td>{{ p.arrival_port }}</td>
+            <td>{{ p.arrival_date }}</td>
+            <td><a href="{% url 'passenger_detail' p.pk %}">View</a></td>
+        </tr>
+        {% endfor %}
+    </table>
+</body>
+</html>

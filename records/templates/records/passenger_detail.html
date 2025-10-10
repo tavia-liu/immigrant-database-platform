@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Passenger Detail</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        h1 { margin-bottom: 10px; }
+        table { border-collapse: collapse; width: 100%; margin-bottom: 20px; }
+        th, td { border: 1px solid #ccc; padding: 8px; text-align: left; }
+        th { background-color: #f2f2f2; }
+    </style>
+</head>
+<body>
+    <h1>Passenger: {{ passenger.name_individual }} {{ passenger.name_family }}</h1>
+
+    <h2>Basic Info</h2>
+    <table>
+        <tr><th>NAID</th><td>{{ passenger.naid }}</td></tr>
+        <tr><th>Ship Name</th><td>{{ passenger.ship_name }}</td></tr>
+        <tr><th>Departure Port</th><td>{{ passenger.departure_port }}</td></tr>
+        <tr><th>Arrival Port</th><td>{{ passenger.arrival_port }}</td></tr>
+        <tr><th>Arrival Date</th><td>{{ passenger.arrival_date }}</td></tr>
+        <tr><th>Passenger Class</th><td>{{ passenger.passenger_class }}</td></tr>
+    </table>
+
+    <h2>Laborer Info</h2>
+    {% if passenger.laborer_info %}
+    <table>
+        <tr><th>Residence Cert No</th><td>{{ passenger.laborer_info.cert_residence_no }}</td></tr>
+        <tr><th>Return Cert No</th><td>{{ passenger.laborer_info.return_cert_no }}</td></tr>
+        <tr><th>US Residence</th><td>{{ passenger.laborer_info.us_residence_city }}, {{ passenger.laborer_info.us_residence_state }}</td></tr>
+    </table>
+    {% else %}
+    <p>No laborer info available.</p>
+    {% endif %}
+
+    <h2>Merchant Info</h2>
+    {% if passenger.merchant_info %}
+    <table>
+        <tr><th>Firm Name</th><td>{{ passenger.merchant_info.firm_name }}</td></tr>
+        <tr><th>Members</th><td>{{ passenger.merchant_info.members_count }}</td></tr>
+        <tr><th>Capital</th><td>{{ passenger.merchant_info.capital_invested }}</td></tr>
+    </table>
+    {% else %}
+    <p>No merchant info available.</p>
+    {% endif %}
+
+    <p><a href="/records/">Back to list</a></p>
+    <a href="{% url 'passenger_detail' passenger.pk %}">View</a>
+</body>
+</html>
