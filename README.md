@@ -49,10 +49,14 @@ This project demonstrates **software engineering principles**: scalable database
 
 ---
 
-## 📂 Project Structure
+## Project Structure
 records/
-├── admin.py # Admin configuration
-├── admin_filters.py # Custom checkbox & age filters
-├── models.py # Passenger & related info models
-├── scripts/ # Data import pipeline (Excel → DB)
-└── templates/admin/ # Custom checkbox_filter.html
+├── admin.py              # Django Admin configuration (Passenger + inlines)
+├── admin_filters.py      # Custom filters (checkbox filter, age group filter)
+├── models.py             # Database models (Passenger + Laborer, Merchant, etc.)
+├── scripts/              # Data ingestion & ETL scripts
+│   └── import_data.py    # Excel → DB pipeline (Pandas cleaning + ORM insert)
+├── templates/
+│   └── admin/
+│       └── checkbox_filter.html   # Custom HTML template for checkbox filters
+└── __init__.py           # Package marker
