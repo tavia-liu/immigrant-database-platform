@@ -17,8 +17,10 @@ Including another URLconf
 
 from django.contrib import admin
 from django.urls import path, include
+from django.http import HttpResponseRedirect
 
 urlpatterns = [
+    path("", lambda request: HttpResponseRedirect("/admin/")),  # redirect root → admin
     path("admin/", admin.site.urls),
-    path("records/", include("records.urls")),   # ✅ include app routes
+    path("records/", include("records.urls")),
 ]
