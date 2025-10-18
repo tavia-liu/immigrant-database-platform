@@ -6,6 +6,14 @@ from django.db import models
 # -------------------------
 class Passenger(models.Model):
     # Basic identifiers
+    passenger_id = models.CharField(
+        "Passenger ID", 
+        max_length=50, 
+        unique=True, 
+        db_index=True, 
+        blank=True,  # Allow blank initially
+        editable=False  # Don't show in admin forms
+    )
     naid = models.CharField("NAID", max_length=50, blank=True, null=True)
     ship_name = models.CharField("ship name", max_length=100, blank=True, null=True)
     departure_port = models.CharField("depature port", max_length=100, blank=True, null=True)
@@ -37,6 +45,19 @@ class Passenger(models.Model):
     destination = models.CharField("destination", max_length=200, blank=True, null=True)
     physical_markers = models.TextField("physical markers", blank=True, null=True)
 
+    def generate_passenger_id(self):
+        """Generate unique passenger ID from NAID, line_no, and image_no"""
+        naid_part = self.naid or "UNKNOWN"
+        line_part = f"Line{self.line_no or '0'}"
+        image_part = f"Image{self.image_no or '0'}"
+        return f"{naid_part}_{line_part}_{image_part}"
+
+    def save(self, *args, **kwargs):
+        """Override save to auto-generate passenger_id if not set"""
+        if not self.passenger_id:
+            self.passenger_id = self.generate_passenger_id()
+        super().save(*args, **kwargs)
+
     def __str__(self):
         parts = []
         if self.name_individual:
@@ -45,8 +66,7 @@ class Passenger(models.Model):
             parts.append(self.name_family)
         if parts:
             return " ".join(parts)
-        return "Unknown Passenger"
-        
+        return f"Passenger {self.passenger_id or 'Unknown'}"
 
 
 # -------------------------

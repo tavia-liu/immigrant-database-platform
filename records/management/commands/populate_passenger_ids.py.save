@@ -1,0 +1,25 @@
+from django.core.management.base import BaseCommand
+from records.models import Passenger
+
+
+class Command(BaseCommand):
+    help = 'Populate passenger_id for all existing passengers'
+
+    def handle(self, *args, **options):
+        passengers = Passenger.objects.filter(passenger_id='') | Passenger.objects.filter(passenger_id__isnull=True)
+        total = passengers.count()
+        
+        self.stdout.write(f'Found {total} passengers without passenger_id')
+        
+        updated = 0
+        for passenger in passengers:
+            passenger.passenger_id = passenger.generate_passenger_id()
+            passenger.save()
+            updated += 1
+            
+            if updated % 100 == 0:
+                self.stdout.write(f'Updated {updated}/{total}...')
+        
+        self.stdout.write(
+            self.style.SUCCESS(f'Successfully populated {updated} passenger IDs')
+        )
