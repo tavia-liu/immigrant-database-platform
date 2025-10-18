@@ -39,7 +39,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'records',
     'rest_framework',
-    'rest_framework_simplejwt',  # Add this
+    'rest_framework_simplejwt',
     'corsheaders',
 ]
 

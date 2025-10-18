@@ -156,7 +156,7 @@ def current_user(request):
 
 
 @api_view(['POST'])
-@permission_classes([IsAuthenticated])
+@permission_classes([AllowAny])
 def logout(request):
     """
     Logout user (client should delete tokens)

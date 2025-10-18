@@ -7,6 +7,140 @@ import {
 import Login from './Login';
 import { authAPI, passengerAPI } from './services/api';
 
+// Info Card Component
+const InfoCard = ({ label, value }) => (
+  <div className="bg-gray-50 rounded-lg p-4">
+    <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">{label}</p>
+    <p className="text-sm text-gray-900">{value || 'N/A'}</p>
+  </div>
+);
+
+// Category Details Component
+const PassengerCategoryDetails = ({ passengerId }) => {
+  const [details, setDetails] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchDetails = async () => {
+      try {
+        const data = await passengerAPI.fetchPassenger(passengerId);
+        setDetails(data);
+      } catch (error) {
+        console.error('Error loading passenger details:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchDetails();
+  }, [passengerId]);
+
+  if (loading) {
+    return (
+      <div className="text-center py-8">
+        <RefreshCw className="animate-spin mx-auto mb-2 text-gray-400" size={24} />
+        <p className="text-sm text-gray-500">Loading detailed information...</p>
+      </div>
+    );
+  }
+
+  if (!details) return null;
+
+  return (
+    <>
+      {/* Laborer Info */}
+      {details.laborer_info && (
+        <div className="border-t pt-6">
+          <h4 className="text-lg font-bold text-blue-900 mb-4">💼 Laborer Information</h4>
+          <div className="grid grid-cols-2 gap-4">
+            <InfoCard label="Certificate of Residence No" value={details.laborer_info.cert_residence_no} />
+            <InfoCard label="Return Certificate No" value={details.laborer_info.return_cert_no} />
+            <InfoCard label="US Residence City" value={details.laborer_info.us_residence_city} />
+            <InfoCard label="US Residence State" value={details.laborer_info.us_residence_state} />
+            <InfoCard label="Departure Port (US)" value={details.laborer_info.departure_port_us} />
+            <InfoCard label="Departure Date (US)" value={details.laborer_info.departure_date_us} />
+            <div className="col-span-2">
+              <InfoCard label="Claim Basis" value={details.laborer_info.claim_basis} />
+            </div>
+            <InfoCard label="Overtime Certificate" value={details.laborer_info.overtime_certificate} />
+          </div>
+        </div>
+      )}
+
+      {/* Merchant Info */}
+      {details.merchant_info && (
+        <div className="border-t pt-6">
+          <h4 className="text-lg font-bold text-green-900 mb-4">🏪 Merchant Information</h4>
+          <div className="grid grid-cols-2 gap-4">
+            <InfoCard label="Registered Certificate No" value={details.merchant_info.registered_cert_no} />
+            <InfoCard label="Return Date to China" value={details.merchant_info.return_date_china} />
+            <InfoCard label="Steamship Name" value={details.merchant_info.steamship_name} />
+            <InfoCard label="Firm Name" value={details.merchant_info.firm_name} />
+            <InfoCard label="Firm Address" value={details.merchant_info.firm_address} />
+            <InfoCard label="Firm City" value={details.merchant_info.firm_city} />
+            <InfoCard label="Members Count" value={details.merchant_info.members_count} />
+            <InfoCard label="Years as Member" value={details.merchant_info.years_member} />
+            <InfoCard label="Capital Invested" value={details.merchant_info.capital_invested} />
+          </div>
+        </div>
+      )}
+
+      {/* Transit Info */}
+      {details.transit_info && (
+        <div className="border-t pt-6">
+          <h4 className="text-lg font-bold text-yellow-900 mb-4">🚂 Transit Information</h4>
+          <div className="grid grid-cols-2 gap-4">
+            <div className="col-span-2">
+              <InfoCard label="Cause of Departure" value={details.transit_info.cause_departure} />
+            </div>
+            <InfoCard label="US Residence" value={details.transit_info.us_residence} />
+            <InfoCard label="US Occupation" value={details.transit_info.us_occupation} />
+            <InfoCard label="Registered" value={details.transit_info.registered} />
+            <InfoCard label="Registration Certificate No" value={details.transit_info.registration_cert_no} />
+          </div>
+        </div>
+      )}
+
+      {/* Wife/Child Info */}
+      {details.wifechild_info && (
+        <div className="border-t pt-6">
+          <h4 className="text-lg font-bold text-pink-900 mb-4">👨‍👩‍👧 Wife/Child Information</h4>
+          <div className="grid grid-cols-2 gap-4">
+            <InfoCard label="Husband or Father" value={details.wifechild_info.husband_or_father} />
+            <InfoCard label="Residence Address" value={details.wifechild_info.residence_husband_father_address} />
+            <InfoCard label="Residence State" value={details.wifechild_info.residence_husband_father_state} />
+            <InfoCard label="Marriage Date" value={details.wifechild_info.marriage_date} />
+            <InfoCard label="Marriage Place" value={details.wifechild_info.marriage_place} />
+            <InfoCard label="First and Only Wife" value={details.wifechild_info.first_and_only_wife} />
+            <div className="col-span-2">
+              <InfoCard label="Witnesses" value={details.wifechild_info.witnesses} />
+            </div>
+            <InfoCard label="Children Names" value={details.wifechild_info.children_names} />
+            <InfoCard label="Mother Name" value={details.wifechild_info.mother_name} />
+            <InfoCard label="Brothers Names" value={details.wifechild_info.brothers_names} />
+            <InfoCard label="Sisters Names" value={details.wifechild_info.sisters_names} />
+          </div>
+        </div>
+      )}
+
+      {/* Exempt Info */}
+      {details.exempt_info && (
+        <div className="border-t pt-6">
+          <h4 className="text-lg font-bold text-purple-900 mb-4">🎓 Exempt Information</h4>
+          <div className="grid grid-cols-2 gap-4">
+            <InfoCard label="Official Title" value={details.exempt_info.official_title} />
+            <InfoCard label="Last Occupation" value={details.exempt_info.last_occupation} />
+            <InfoCard label="Occupation Place" value={details.exempt_info.occupation_place} />
+            <InfoCard label="Intended Occupation" value={details.exempt_info.intended_occupation} />
+            <InfoCard label="Intended Residence" value={details.exempt_info.intended_residence} />
+            <InfoCard label="Intended Duration" value={details.exempt_info.intended_duration} />
+            <InfoCard label="Study Subject" value={details.exempt_info.study_subject} />
+            <InfoCard label="School Name" value={details.exempt_info.school_name} />
+          </div>
+        </div>
+      )}
+    </>
+  );
+};
 const PassengerDatabase = () => {
   // 认证状态
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -801,10 +935,12 @@ const PassengerDatabase = () => {
       {/* Detailed Passenger Modal */}
       {selectedPassenger && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 overflow-y-auto backdrop-blur-sm">
-          <div className="bg-white rounded-2xl shadow-2xl max-w-5xl w-full mx-4 my-8">
-            <div className="flex items-center justify-between p-6 border-b border-gray-200 bg-gradient-to-r from-blue-50 to-indigo-50">
+          <div className="bg-white rounded-2xl shadow-2xl max-w-6xl w-full mx-4 my-8 max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between p-6 border-b border-gray-200 bg-gradient-to-r from-blue-50 to-indigo-50 sticky top-0 z-10">
               <div>
-                <h3 className="text-2xl font-bold text-gray-900">{selectedPassenger.full_name}</h3>
+                <h3 className="text-2xl font-bold text-gray-900">
+                  {selectedPassenger.name_individual} {selectedPassenger.name_family}
+                </h3>
                 <p className="text-sm text-gray-600 mt-1">Passenger ID: {selectedPassenger.passenger_id}</p>
               </div>
               <button
@@ -814,115 +950,83 @@ const PassengerDatabase = () => {
                 <X size={28} />
               </button>
             </div>
-            <div className="p-6 max-h-[600px] overflow-y-auto">
-              <div className="grid grid-cols-2 gap-6">
-                {/* Basic Information */}
-                <div className="col-span-2">
-                  <h4 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
-                    <FileText size={20} className="text-blue-600" />
-                    Basic Information
-                  </h4>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="bg-gray-50 rounded-lg p-4">
-                      <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">Passenger ID</p>
-                      <p className="text-sm font-mono text-gray-900">{selectedPassenger.passenger_id}</p>
-                    </div>
-                    <div className="bg-gray-50 rounded-lg p-4">
-                      <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">NAID</p>
-                      <p className="text-sm text-gray-900">{selectedPassenger.naid}</p>
-                    </div>
-                    <div className="bg-gray-50 rounded-lg p-4">
-                      <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">Individual Name</p>
-                      <p className="text-sm text-gray-900">{selectedPassenger.name_individual || 'N/A'}</p>
-                    </div>
-                    <div className="bg-gray-50 rounded-lg p-4">
-                      <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">Family Name</p>
-                      <p className="text-sm text-gray-900">{selectedPassenger.name_family || 'N/A'}</p>
-                    </div>
-                    <div className="bg-gray-50 rounded-lg p-4">
-                      <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">Sex</p>
-                      <p className="text-sm text-gray-900">{selectedPassenger.sex}</p>
-                    </div>
-                    <div className="bg-gray-50 rounded-lg p-4">
-                      <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">Passenger Class</p>
-                      <p className="text-sm text-gray-900">{selectedPassenger.passenger_class || 'N/A'}</p>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Travel Information */}
-                <div className="col-span-2">
-                  <h4 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
-                    <Ship size={20} className="text-green-600" />
-                    Travel Information
-                  </h4>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="bg-gray-50 rounded-lg p-4">
-                      <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">Ship Name</p>
-                      <p className="text-sm text-gray-900">{selectedPassenger.ship_name || 'N/A'}</p>
-                    </div>
-                    <div className="bg-gray-50 rounded-lg p-4">
-                      <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">Arrival Date</p>
-                      <p className="text-sm text-gray-900">{selectedPassenger.arrival_date || 'N/A'}</p>
-                    </div>
-                    <div className="bg-gray-50 rounded-lg p-4">
-                      <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">Departure Port</p>
-                      <p className="text-sm text-gray-900">{selectedPassenger.departure_port || 'N/A'}</p>
-                    </div>
-                    <div className="bg-gray-50 rounded-lg p-4">
-                      <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">Arrival Port</p>
-                      <p className="text-sm text-gray-900">{selectedPassenger.arrival_port || 'N/A'}</p>
-                    </div>
-                    <div className="bg-gray-50 rounded-lg p-4">
-                      <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">Destination</p>
-                      <p className="text-sm text-gray-900">{selectedPassenger.destination || 'N/A'}</p>
-                    </div>
-                    <div className="bg-gray-50 rounded-lg p-4">
-                      <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">Country of Birth</p>
-                      <p className="text-sm text-gray-900">{selectedPassenger.pob_country || 'N/A'}</p>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Categories */}
-                <div className="col-span-2">
-                  <h4 className="text-lg font-bold text-gray-900 mb-4">Categories</h4>
-                  <div className="flex flex-wrap gap-2">
-                    {selectedPassenger.categories && selectedPassenger.categories.length > 0 ? (
-                      selectedPassenger.categories.map((cat) => (
-                        <span
-                          key={cat}
-                          className={`px-4 py-2 text-sm font-semibold rounded-lg border-2 ${categoryColors[cat]}`}
-                        >
-                          {cat.charAt(0).toUpperCase() + cat.slice(1)}
-                        </span>
-                      ))
-                    ) : (
-                      <span className="px-4 py-2 text-sm font-medium rounded-lg bg-gray-100 text-gray-600 border-2 border-gray-200">
-                        No categories assigned
-                      </span>
-                    )}
-                  </div>
+            
+            <div className="p-6 space-y-6">
+              {/* Basic Information */}
+              <div>
+                <h4 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
+                  <FileText size={20} className="text-blue-600" />
+                  Basic Information
+                </h4>
+                <div className="grid grid-cols-3 gap-4">
+                  <InfoCard label="Passenger ID" value={selectedPassenger.passenger_id} />
+                  <InfoCard label="NAID" value={selectedPassenger.naid} />
+                  <InfoCard label="Individual Name" value={selectedPassenger.name_individual} />
+                  <InfoCard label="Family Name" value={selectedPassenger.name_family} />
+                  <InfoCard label="Tribal Name" value={selectedPassenger.name_tribal} />
+                  <InfoCard label="Chinese Signature" value={selectedPassenger.chinese_signature} />
+                  <InfoCard label="Sex" value={selectedPassenger.sex} />
+                  <InfoCard label="Date of Birth" value={selectedPassenger.date_of_birth} />
+                  <InfoCard label="Passenger Class" value={selectedPassenger.passenger_class} />
                 </div>
               </div>
+
+              {/* Travel Information */}
+              <div>
+                <h4 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
+                  <Ship size={20} className="text-green-600" />
+                  Travel Information
+                </h4>
+                <div className="grid grid-cols-3 gap-4">
+                  <InfoCard label="Ship Name" value={selectedPassenger.ship_name} />
+                  <InfoCard label="Departure Port" value={selectedPassenger.departure_port} />
+                  <InfoCard label="Arrival Port" value={selectedPassenger.arrival_port} />
+                  <InfoCard label="Arrival Date" value={selectedPassenger.arrival_date} />
+                  <InfoCard label="Destination" value={selectedPassenger.destination} />
+                  <InfoCard label="Country of Birth" value={selectedPassenger.pob_country} />
+                  <InfoCard label="City of Birth (Std)" value={selectedPassenger.pob_city_std} />
+                  <InfoCard label="District of Birth (Std)" value={selectedPassenger.pob_district_std} />
+                  <InfoCard label="Image Number" value={selectedPassenger.image_no} />
+                  <InfoCard label="Line Number" value={selectedPassenger.line_no} />
+                </div>
+              </div>
+
+              {/* Categories */}
+              <div>
+                <h4 className="text-lg font-bold text-gray-900 mb-4">Categories</h4>
+                <div className="flex flex-wrap gap-2 mb-4">
+                  {selectedPassenger.categories && selectedPassenger.categories.length > 0 ? (
+                    selectedPassenger.categories.map((cat) => (
+                      <span
+                        key={cat}
+                        className={`px-4 py-2 text-sm font-semibold rounded-lg border-2 ${categoryColors[cat]}`}
+                      >
+                        {cat.charAt(0).toUpperCase() + cat.slice(1)}
+                      </span>
+                    ))
+                  ) : (
+                    <span className="px-4 py-2 text-sm font-medium rounded-lg bg-gray-100 text-gray-600 border-2 border-gray-200">
+                      No categories assigned
+                    </span>
+                  )}
+                </div>
+              </div>
+
+              {/* Category Details - Will load when modal opens */}
+              <PassengerCategoryDetails passengerId={selectedPassenger.id} />
             </div>
-            <div className="p-6 bg-gray-50 border-t border-gray-200 flex justify-end gap-3">
+
+            <div className="p-6 bg-gray-50 border-t border-gray-200 flex justify-end gap-3 sticky bottom-0">
               <button
                 onClick={() => setSelectedPassenger(null)}
                 className="px-6 py-2.5 bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition font-medium"
               >
                 Close
               </button>
-              <button
-                className="px-6 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition font-medium"
-              >
-                View Full Record
-              </button>
             </div>
           </div>
         </div>
       )}
-
       {/* Print Styles */}
       <style>{`
         @media print {
