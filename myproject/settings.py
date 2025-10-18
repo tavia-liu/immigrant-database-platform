@@ -38,11 +38,9 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'records',
-    
-    # Third party apps
     'rest_framework',
-    'corsheaders',  # For React frontend
-    
+    'rest_framework_simplejwt',  # Add this
+    'corsheaders',
 ]
 
 MIDDLEWARE = [

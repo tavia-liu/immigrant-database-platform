@@ -1,33 +1,63 @@
 from rest_framework import viewsets, status
-from rest_framework.decorators import action, api_view
+from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.parsers import MultiPartParser, FormParser
+from rest_framework.permissions import IsAuthenticated, BasePermission
 from django.core.files.storage import default_storage
-from django.db.models import Q, Count, Prefetch
-import pandas as pd
-import os
+from django.db.models import Q, Count
+from django.http import HttpResponse
+import csv
 from .models import (
-    Passenger, LaborerInfo, MerchantInfo, 
-    TransitInfo, WifeChildInfo, ExemptInfo
+    Passenger,
+    LaborerInfo,
+    MerchantInfo,
+    TransitInfo,
+    WifeChildInfo,
+    ExemptInfo,
 )
+
 from .serializers import (
-    PassengerSerializer, PassengerDetailSerializer,
-    LaborerInfoSerializer, MerchantInfoSerializer,
-    TransitInfoSerializer, WifeChildInfoSerializer,
-    ExemptInfoSerializer
+    PassengerSerializer,
+    PassengerDetailSerializer,
 )
-from .import_data import run as import_excel
+class IsSuperUserOrReadOnly(BasePermission):
+    """
+    Custom permission:
+    - Superusers can do anything
+    - Regular users can only view and export
+    """
+    def has_permission(self, request, view):
+        # Read permissions are allowed to any authenticated user
+        if request.method in ['GET', 'HEAD', 'OPTIONS']:
+            return request.user and request.user.is_authenticated
+        
+        # Write permissions only for superuser
+        return request.user and request.user.is_superuser
 
 
 class PassengerViewSet(viewsets.ModelViewSet):
     """
-    API endpoint for managing passengers
+    API endpoint for managing passengers with permission controls
     """
     queryset = Passenger.objects.all().select_related(
         'laborer_info', 'merchant_info', 'transit_info', 
         'wifechild_info', 'exempt_info'
     )
     serializer_class = PassengerSerializer
+    permission_classes = [IsAuthenticated, IsSuperUserOrReadOnly]
+    
+    def get_permissions(self):
+        """
+        Set different permissions for different actions
+        """
+        if self.action in ['list', 'retrieve', 'statistics', 'export_csv']:
+            # 临时允许任何人查看和导出（不需要登录）
+            permission_classes = []  # 改成空列表！
+        else:
+            # 只有超级用户可以上传、创建、更新、删除
+            permission_classes = [IsAuthenticated, IsSuperUserOrReadOnly]
+        
+        return [permission() for permission in permission_classes]
     
     def get_serializer_class(self):
         if self.action == 'retrieve':
@@ -51,34 +81,46 @@ class PassengerViewSet(viewsets.ModelViewSet):
         # Filter by category
         category = self.request.query_params.get('category', None)
         if category:
-            if category == 'laborer':
-                queryset = queryset.filter(laborer_info__isnull=False)
-            elif category == 'merchant':
-                queryset = queryset.filter(merchant_info__isnull=False)
-            elif category == 'transit':
-                queryset = queryset.filter(transit_info__isnull=False)
-            elif category == 'wifechild':
-                queryset = queryset.filter(wifechild_info__isnull=False)
-            elif category == 'exempt':
-                queryset = queryset.filter(exempt_info__isnull=False)
-            elif category == 'none':
-                queryset = queryset.filter(
-                    laborer_info__isnull=True,
-                    merchant_info__isnull=True,
-                    transit_info__isnull=True,
-                    wifechild_info__isnull=True,
-                    exempt_info__isnull=True
-                )
+            categories = category.split(',')
+            q = Q()
+            for cat in categories:
+                if cat == 'laborer':
+                    q |= Q(laborer_info__isnull=False)
+                elif cat == 'merchant':
+                    q |= Q(merchant_info__isnull=False)
+                elif cat == 'transit':
+                    q |= Q(transit_info__isnull=False)
+                elif cat == 'wifechild':
+                    q |= Q(wifechild_info__isnull=False)
+                elif cat == 'exempt':
+                    q |= Q(exempt_info__isnull=False)
+                elif cat == 'none':
+                    q |= Q(
+                        laborer_info__isnull=True,
+                        merchant_info__isnull=True,
+                        transit_info__isnull=True,
+                        wifechild_info__isnull=True,
+                        exempt_info__isnull=True
+                    )
+            if q:
+                queryset = queryset.filter(q)
         
-        # Filter by arrival port
+        # Other filters
+        sex = self.request.query_params.get('sex', None)
+        if sex:
+            queryset = queryset.filter(sex=sex)
+        
         arrival_port = self.request.query_params.get('arrival_port', None)
         if arrival_port:
             queryset = queryset.filter(arrival_port=arrival_port)
         
-        # Filter by sex
-        sex = self.request.query_params.get('sex', None)
-        if sex:
-            queryset = queryset.filter(sex=sex)
+        pob_country = self.request.query_params.get('pob_country', None)
+        if pob_country:
+            queryset = queryset.filter(pob_country=pob_country)
+        
+        passenger_class = self.request.query_params.get('passenger_class', None)
+        if passenger_class:
+            queryset = queryset.filter(passenger_class=passenger_class)
         
         # Date range filtering
         start_date = self.request.query_params.get('start_date', None)
@@ -88,13 +130,20 @@ class PassengerViewSet(viewsets.ModelViewSet):
         if end_date:
             queryset = queryset.filter(arrival_date__lte=end_date)
         
-        return queryset.order_by('-arrival_date')
+        return queryset.order_by('-arrival_date').distinct()
     
     @action(detail=False, methods=['post'], parser_classes=[MultiPartParser, FormParser])
     def upload_excel(self, request):
         """
-        Upload and import Excel file with passenger data
+        Upload and import Excel file - SUPERUSER ONLY
         """
+        # Double check permission
+        if not request.user.is_superuser:
+            return Response(
+                {'error': 'Only superusers can upload files'}, 
+                status=status.HTTP_403_FORBIDDEN
+            )
+        
         if 'file' not in request.FILES:
             return Response(
                 {'error': 'No file provided'}, 
@@ -116,7 +165,8 @@ class PassengerViewSet(viewsets.ModelViewSet):
         
         try:
             # Import the data
-            import_excel(full_path)
+            from records.import_data import run
+            run(full_path)
             
             # Clean up temporary file
             default_storage.delete(file_path)
@@ -139,7 +189,7 @@ class PassengerViewSet(viewsets.ModelViewSet):
     @action(detail=False, methods=['get'])
     def statistics(self, request):
         """
-        Get database statistics
+        Get database statistics - ALL AUTHENTICATED USERS
         """
         total_passengers = Passenger.objects.count()
         
