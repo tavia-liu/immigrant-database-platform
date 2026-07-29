@@ -43,8 +43,9 @@ class PassengerSerializer(serializers.ModelSerializer):
     class Meta:
         model = Passenger
         fields = [
-            'id', 'passenger_id', 'naid', 'full_name', 'ship_name',
-            'arrival_port', 'arrival_date', 'sex', 'passenger_class',
+            'id', 'passenger_id', 'naid', 'full_name', 'name_individual',
+            'name_family', 'ship_name', 'departure_port', 'arrival_port',
+            'arrival_date', 'sex', 'passenger_class', 'pob_country',
             'categories', 'destination'
         ]
     

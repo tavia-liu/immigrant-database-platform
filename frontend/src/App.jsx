@@ -4,7 +4,6 @@ import {
   ChevronRight, Calendar, Ship, MapPin, Database, FileText,
   Printer, RefreshCw, SlidersHorizontal, CheckSquare, Square, User
 } from 'lucide-react';
-import Login from './Login';
 import { authAPI, passengerAPI } from './services/api';
 
 // Info Card Component
@@ -143,7 +142,6 @@ const PassengerCategoryDetails = ({ passengerId }) => {
 };
 const PassengerDatabase = () => {
   // 认证状态
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [currentUser, setCurrentUser] = useState(null);
   const [showUserMenu, setShowUserMenu] = useState(false);
   
@@ -195,7 +193,6 @@ const PassengerDatabase = () => {
     const checkAuth = () => {
       if (authAPI.isAuthenticated()) {
         const user = authAPI.getUser();
-        setIsAuthenticated(true);
         setCurrentUser(user);
       }
     };
@@ -204,28 +201,15 @@ const PassengerDatabase = () => {
 
   // 加载数据
   useEffect(() => {
-    if (isAuthenticated) {
-      loadPassengers();
-      loadStatistics();
-      loadFilterOptions();
-    }
-  }, [searchTerm, filters, advancedSearch, isAuthenticated]);
-
-  const handleLoginSuccess = (user) => {
-    setIsAuthenticated(true);
-    setCurrentUser(user);
-  };
+    loadPassengers();
+    loadStatistics();
+    loadFilterOptions();
+  }, [searchTerm, filters, advancedSearch]);
 
   const handleLogout = async () => {
     await authAPI.logout();
-    setIsAuthenticated(false);
     setCurrentUser(null);
   };
-
-  // 如果未登录，显示登录页面
-  if (!isAuthenticated) {
-    return <Login onLoginSuccess={handleLoginSuccess} />;
-  }
 
   const loadPassengers = async () => {
     setLoading(true);
@@ -390,47 +374,49 @@ const PassengerDatabase = () => {
             {/* Right Side: User Menu and Action Buttons */}
             <div className="flex items-center gap-3">
               {/* User Menu */}
-              <div className="relative">
-                <button
-                  onClick={() => setShowUserMenu(!showUserMenu)}
-                  className="flex items-center gap-2 px-4 py-2 bg-gray-50 border border-gray-200 rounded-lg hover:bg-gray-100 transition"
-                >
-                  <User size={18} className="text-gray-600" />
-                  <div className="text-left">
-                    <div className="flex items-center gap-2">
-                      <span className="text-sm font-medium text-gray-900">{currentUser?.username}</span>
-                      {currentUser?.is_superuser && (
-                        <span className="px-2 py-0.5 bg-purple-100 text-purple-700 text-xs font-bold rounded">
-                          ADMIN
-                        </span>
-                      )}
+              {currentUser && (
+                <div className="relative">
+                  <button
+                    onClick={() => setShowUserMenu(!showUserMenu)}
+                    className="flex items-center gap-2 px-4 py-2 bg-gray-50 border border-gray-200 rounded-lg hover:bg-gray-100 transition"
+                  >
+                    <User size={18} className="text-gray-600" />
+                    <div className="text-left">
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm font-medium text-gray-900">{currentUser.username}</span>
+                        {currentUser.is_superuser && (
+                          <span className="px-2 py-0.5 bg-purple-100 text-purple-700 text-xs font-bold rounded">
+                            ADMIN
+                          </span>
+                        )}
+                      </div>
                     </div>
-                  </div>
-                </button>
+                  </button>
 
-                {showUserMenu && (
-                  <div className="absolute right-0 mt-2 w-64 bg-white rounded-lg shadow-xl border border-gray-200 py-2 z-50">
-                    <div className="px-4 py-3 border-b border-gray-200">
-                      <p className="text-sm font-semibold text-gray-900">{currentUser?.username}</p>
-                      <p className="text-xs text-gray-500">{currentUser?.email}</p>
-                      <p className="text-xs text-gray-500 mt-1">
-                        {currentUser?.is_superuser ? 'Administrator' : 'Regular User'}
-                      </p>
+                  {showUserMenu && (
+                    <div className="absolute right-0 mt-2 w-64 bg-white rounded-lg shadow-xl border border-gray-200 py-2 z-50">
+                      <div className="px-4 py-3 border-b border-gray-200">
+                        <p className="text-sm font-semibold text-gray-900">{currentUser.username}</p>
+                        <p className="text-xs text-gray-500">{currentUser.email}</p>
+                        <p className="text-xs text-gray-500 mt-1">
+                          {currentUser.is_superuser ? 'Administrator' : 'Regular User'}
+                        </p>
+                      </div>
+                      <div className="px-2 py-1">
+                        <button
+                          onClick={() => {
+                            handleLogout();
+                            setShowUserMenu(false);
+                          }}
+                          className="w-full text-left px-3 py-2 text-sm text-red-600 hover:bg-red-50 rounded transition"
+                        >
+                          Logout
+                        </button>
+                      </div>
                     </div>
-                    <div className="px-2 py-1">
-                      <button
-                        onClick={() => {
-                          handleLogout();
-                          setShowUserMenu(false);
-                        }}
-                        className="w-full text-left px-3 py-2 text-sm text-red-600 hover:bg-red-50 rounded transition"
-                      >
-                        Logout
-                      </button>
-                    </div>
-                  </div>
-                )}
-              </div>
+                  )}
+                </div>
+              )}
 
               {/* Action Buttons */}
               <div className="flex items-center gap-2">
